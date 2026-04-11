@@ -8,7 +8,7 @@ from tqdm import tqdm
 from aksharamukha import transliterate
 
 # Import the Byt5Analyzer class (from the previous setup)
-from byt5_analyzer import Byt5Analyzer
+from byt5_analyzer import *
 
 # Encoding mappings for Aksharamukha
 enc_map_in = {"DN": "Devanagari", "KH": "HK", "RN": "IAST", "SL": "SLP1", "VH": "Velthuis", "WX": "WX"}

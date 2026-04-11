@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 
 class Byt5Analyzer:
-    def __init__(self, model_name="chronbmm/sanskrit5-multitask", device=None, tags_file="data/sanskrit_tags.tsv", batch_size=32):
+    def __init__(self, model_name="chronbmm/sanskrit5-multitask", device=None, tags_file=None, batch_size=32):
         self.device = device or torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.max_length = 512
         self.batch_size = batch_size
@@ -24,7 +24,12 @@ class Byt5Analyzer:
             'mp': "LM "        # Lemma + Morphosyntax
         }
         
-        # Load Tag Expansions (Optional but recommended for consistency)
+        if tags_file is None:
+            # Gets the absolute path of the directory containing byt5_analyzer.py
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            tags_file = os.path.join(current_dir, "data", "sanskrit_tags.tsv")
+        
+        # Load Tag Expansions
         self.sanskrit_tags = self._load_tags(tags_file)
 
     def _load_tags(self, tags_file):
