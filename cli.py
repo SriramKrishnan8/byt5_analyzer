@@ -28,6 +28,8 @@ def from_iast(text, output_enc):
 
 def format_output(raw_result, output_encoding, mode):
     """Selectively transliterates only the Sanskrit components of the output."""
+    raw_result = raw_result.replace("/", "।")
+    
     if output_encoding in ["roma", "IAST"]:
         return raw_result # No transliteration needed
         
