@@ -6,6 +6,7 @@ import argparse
 import json
 from tqdm import tqdm
 from aksharamukha import transliterate
+import re
 
 # Import the Byt5Analyzer class (from the previous setup)
 from byt5_analyzer import *
@@ -26,9 +27,10 @@ def from_iast(text, output_enc):
         return text
     return transliterate.process('IAST', tgt, text)
 
-def format_output(raw_result, output_encoding, mode):
+def format_output(iast_input, raw_result, output_encoding, mode):
     """Selectively transliterates only the Sanskrit components of the output."""
     raw_result = raw_result.replace("/", "।")
+    raw_result = re.sub(r' +', ' ', raw_result)
     
     if output_encoding in ["roma", "IAST"]:
         return raw_result # No transliteration needed
@@ -52,7 +54,8 @@ def format_output(raw_result, output_encoding, mode):
             # Mode mp: lemma_morph
             lemma, morph = parts
             lemma_trans = from_iast(lemma, output_encoding)
-            formatted_tokens.append(f"{lemma_trans}_{morph}")
+            word_trans = from_iast(iast_input, output_encoding)
+            formatted_tokens.append(f"{word_trans}_{lemma_trans}_{morph}")
             
         else:
             # Fallback for unexpected formats to prevent crashing
@@ -74,7 +77,7 @@ def run_byt5_text(analyzer, input_text, input_encoding, output_encoding, mode):
         raw_result = analyzer.analyze(iast_input, mode=mode)
         
         # 3. Smart Transliteration (Applies only to word/lemma, protects morph tags)
-        formatted_result = format_output(raw_result, output_encoding, mode)
+        formatted_result = format_output(iast_input, raw_result, output_encoding, mode)
         
         # 4. Construct SH-style response
         morph_analysis = {
