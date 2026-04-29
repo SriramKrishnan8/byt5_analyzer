@@ -8,7 +8,7 @@ from tqdm import tqdm
 from aksharamukha import transliterate
 import re
 
-# Import the Byt5Analyzer class (from the previous setup)
+# Import the Byt5Analyzer class
 from byt5_analyzer import *
 
 # Encoding mappings for Aksharamukha
@@ -32,15 +32,15 @@ def format_output(iast_input, raw_result, output_encoding, mode):
     raw_result = raw_result.replace("/", "।")
     raw_result = re.sub(r' +', ' ', raw_result)
     
-    if output_encoding in ["roma", "IAST"]:
-        return raw_result # No transliteration needed
-        
     if mode == "ws":
         # Mode ws: The entire result is just words, safe to transliterate all at once
         return from_iast(raw_result, output_encoding)
         
     formatted_tokens = []
-    for token in raw_result.split(" "):
+    iast_tokens = iast_input.split(" ")
+    raw_tokens = raw_result.split(" ")
+
+    for i, token in enumerate(raw_tokens):
         parts = token.split("_")
         
         if mode == "wsmp" and len(parts) == 3:
@@ -54,7 +54,12 @@ def format_output(iast_input, raw_result, output_encoding, mode):
             # Mode mp: lemma_morph
             lemma, morph = parts
             lemma_trans = from_iast(lemma, output_encoding)
-            word_trans = from_iast(iast_input, output_encoding)
+            # Currently, we are taking the words from the input 
+            # This will not work for compound words
+            # Whenever a user wants word, lemma and morphological analysis
+            # wsmp has to be chosen
+            current_word = iast_tokens[i] if i < len(iast_tokens) else iast_input
+            word_trans = from_iast(current_word, output_encoding)
             formatted_tokens.append(f"{word_trans}_{lemma_trans}_{morph}")
             
         else:
@@ -115,9 +120,10 @@ def run_byt5_file(analyzer, input_file, output_file, input_encoding, output_enco
     # 3. Format and reconstruct JSON
     output_list = []
     for original_text, res in zip(input_list, raw_results):
-        formatted_res = format_output(res, output_encoding, mode)
+        iast_input = to_iast(original_text, input_encoding)
+        formatted_res = format_output(iast_input, res, output_encoding, mode)
         output_list.append({
-            "input": from_iast(to_iast(original_text, input_encoding), output_encoding),
+            "input": from_iast(iast_input, output_encoding),
             "status": "success",
             "raw_result": formatted_res,
             "source": "ByT5"

@@ -52,6 +52,8 @@ class TestByt5Interface(unittest.TestCase):
         self.assertIn("raw_result", res)
         self.assertTrue(len(res["raw_result"]) > 0)
 
+        print(f"  --> Output: {res['raw_result']}")
+
     def _validate_file_result(self, output_path, expected_lines):
         self.assertTrue(os.path.exists(output_path), f"File {output_path} was not created.")
         
@@ -62,6 +64,8 @@ class TestByt5Interface(unittest.TestCase):
             # Verify the first line is valid JSON and successful
             first_entry = json.loads(lines[0])
             self._validate_single_result(first_entry)
+
+            print(f"  --> Successfully generated {expected_lines} lines in {os.path.basename(output_path)}")
 
     # ==========================================
     # SCENARIOS 1-6: Single Text Inferences
