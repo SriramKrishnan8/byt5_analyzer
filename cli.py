@@ -43,24 +43,45 @@ def format_output(iast_input, raw_result, output_encoding, mode):
     for i, token in enumerate(raw_tokens):
         parts = token.split("_")
         
-        if mode == "wsmp" and len(parts) == 3:
+        if mode == "wsmp":
             # Mode wsmp: unsandhied_lemma_morph
-            word, lemma, morph = parts
-            word_trans = from_iast(word, output_encoding)
-            lemma_trans = from_iast(lemma, output_encoding)
-            formatted_tokens.append(f"{word_trans}_{lemma_trans}_{morph}")
+            if len(parts) == 4 and token.endswith("__"):
+                # This is to make sure that when ByT5 produces 
+                # _ for an empty result, it should not be
+                # confused for the separator
+                updated_token = token.replace("__", "_")
+                parts = updated_token.split("_")
             
-        elif mode == "mp" and len(parts) == 2:
+            if len(parts) == 3:
+                word, lemma, morph = parts
+                word_trans = from_iast(word, output_encoding)
+                lemma_trans = from_iast(lemma, output_encoding)
+                formatted_tokens.append(f"{word_trans}_{lemma_trans}_{morph}")
+            else:
+                formatted_tokens.append(token)
+            
+        elif mode == "mp":
             # Mode mp: lemma_morph
-            lemma, morph = parts
-            lemma_trans = from_iast(lemma, output_encoding)
-            # Currently, we are taking the words from the input 
-            # This will not work for compound words
-            # Whenever a user wants word, lemma and morphological analysis
-            # wsmp has to be chosen
-            current_word = iast_tokens[i] if i < len(iast_tokens) else iast_input
-            word_trans = from_iast(current_word, output_encoding)
-            formatted_tokens.append(f"{word_trans}_{lemma_trans}_{morph}")
+            
+            if len(parts) == 3 and token.endswith("__"):
+                # This is to make sure that when ByT5 produces 
+                # _ for an empty result, it should not be
+                # confused for the separator
+                updated_token = token.replace("__", "_")
+                parts = updated_token.split("_")
+            
+            if len(parts) == 2:
+                lemma, morph = parts
+                lemma_trans = from_iast(lemma, output_encoding)
+                # Currently, we are taking the words from the input 
+                # This will not work for compound words
+                # Whenever a user wants word, lemma and morphological analysis
+                # wsmp has to be chosen
+                current_word = iast_tokens[i] if i < len(iast_tokens) else iast_input
+                word_trans = from_iast(current_word, output_encoding)
+                formatted_tokens.append(f"{word_trans}_{lemma_trans}_{morph}")
+            else:
+                formatted_tokens.append(token)
             
         else:
             # Fallback for unexpected formats to prevent crashing
